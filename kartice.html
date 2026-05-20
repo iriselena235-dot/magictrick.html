@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pogodi broj</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(ellipse at bottom, #1B2735 0%, #090A0F 100%);
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            overflow: hidden;
+            perspective: 1000px;
+        }
+
+        .star {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            height: 2px;
+            background: linear-gradient(-45deg, #5f91ff, rgba(0, 0, 255, 0));
+            border-radius: 999px;
+            filter: drop-shadow(0 0 6px #699bff);
+            animation: tail 3s ease-in-out infinite, shooting 3s ease-in-out infinite;
+        }
+
+        @keyframes tail {
+            0% { width: 0; }
+            30% { width: 100px; }
+            100% { width: 0; }
+        }
+
+        @keyframes shooting {
+            0% { transform: translateX(0) translateY(0) rotate(45deg); }
+            100% { transform: translateX(-1000px) translateY(1000px) rotate(45deg); }
+        }
+
+        .game-container {
+            position: relative;
+            z-index: 10;
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .card-wrapper {
+            width: 100%;
+            height: 320px;
+            margin-bottom: 30px;
+            position: relative;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-wrapper.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            background: rgba(22, 33, 62, 0.9);
+            border: 2px solid #ffd700; /* Zlatni okvir */
+            border-radius: 15px;
+            padding: 15px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 8px;
+            box-sizing: border-box;
+            /* Zlatni sjaj */
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.3), inset 0 0 10px rgba(255, 215, 0, 0.2);
+            animation: pulse-gold 2s infinite alternate;
+        }
+
+        @keyframes pulse-gold {
+            from { box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+            to { box-shadow: 0 0 30px rgba(255, 215, 0, 0.6); }
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 3rem;
+            color: #ffd700;
+        }
+
+        .card span {
+            background: rgba(255, 215, 0, 0.1);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 5px;
+            color: #fff;
+            border: 1px solid rgba(255, 215, 0, 0.1);
+        }
+
+        .symbol { color: #ffd700; font-size: 1.3rem; }
+
+        .controls { display: flex; justify-content: center; gap: 15px; }
+        .btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .green { background: #27ae60; color: white; box-shadow: 0 4px 15px rgba(39, 174, 96, 0.4); }
+        .red { background: #c0392b; color: white; box-shadow: 0 4px 15px rgba(192, 57, 43, 0.4); }
+        .gold-btn { background: #ffd700; color: #000; box-shadow: 0 4px 15px rgba(255, 215, 0, 0.4); }
+        
+        .btn:hover { transform: scale(1.05); opacity: 0.9; }
+
+        .screen { display: flex; flex-direction: column; align-items: center; }
+        .big-number { font-size: 8rem; color: #ffd700; text-shadow: 0 0 40px #ffd700; margin: 10px 0; }
+        .hide { display: none; }
+        
+        h1 { font-size: 2.5rem; color: #ffd700; text-shadow: 0 0 10px rgba(255, 215, 0, 0.5); }
+    </style>
+</head>
+<body>
+
+    <div id="stars-container"></div>
+
+    <div class="game-container">
+        <div id="intro-screen" class="screen">
+            <h1>✨ Pogodi moj broj ✨</h1>
+            <p style="font-size: 1.2rem; margin-bottom: 30px;">Zamisli broj od 1 do 60...</p>
+            <button id="btn-start" class="btn gold-btn">START</button>
+        </div>
+
+        <div id="game-screen" class="screen hide">
+            <p style="font-size: 1.2rem; margin-bottom: 15px;">Da li je tvoj broj ovde?</p>
+            <div id="card-wrapper" class="card-wrapper">
+                <div id="card-front" class="card"></div>
+                <div class="card card-back">🔮</div>
+            </div>
+            <div class="controls">
+                <button id="btn-da" class="btn green">DA</button>
+                <button id="btn-ne" class="btn red">NE</button>
+            </div>
+        </div>
+
+        <div id="result-screen" class="screen hide">
+            <h2 style="color: #ffd700;">Tvoj magični broj je:</h2>
+            <div id="final-number" class="big-number">0</div>
+            <button id="btn-restart" class="btn gold-btn">PONOVO</button>
+        </div>
+    </div>
+
+    <script>
+        const starsContainer = document.getElementById('stars-container');
+        for (let i = 0; i < 15; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.left = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+        const cardsData = [
+            { start: 1, numbers: [1, 11, 21, 31, 41, 51, 3, 13, 23, 33, 43, 53, 5, 15, 25, 35, 45, 55, 7, 17, 27, 37, 47, 57, 9, 19, 29, 39, 49, 59] },
+            { start: 2, numbers: [2, 3, 6, 7, 10, 11, 14, 15, 18, 19, 22, 23, 26, 27, 30, 31, 34, 35, 38, 39, 42, 43, 46, 47, 50, 51, 54, 55, 58, 59] },
+            { start: 4, numbers: [4, 5, 6, 7, 12, 13, 14, 15, 20, 21, 22, 23, 28, 29, 30, 31, 36, 37, 38, 39, 44, 45, 46, 47, 52, 53, 54, 55, 60] },
+            { start: 8, numbers: [8, 9, 10, 11, 12, 13, 14, 15, 24, 25, 26, 27, 28, 29, 30, 31, 40, 41, 42, 43, 44, 45, 46, 47, 56, 57, 58, 59, 60] },
+            { start: 16, numbers: [16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60] },
+            { start: 32, numbers: [32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60] }
+        ];
+
+        let currentCardIndex = 0;
+        let totalSum = 0;
+
+        const introScreen = document.getElementById('intro-screen');
+        const gameScreen = document.getElementById('game-screen');
+        const resultScreen = document.getElementById('result-screen');
+        const cardFront = document.getElementById('card-front');
+        const cardWrapper = document.getElementById('card-wrapper');
+        const finalNumberDisplay = document.getElementById('final-number');
+
+        function renderCard() {
+            if (currentCardIndex < cardsData.length) {
+                const card = cardsData[currentCardIndex];
+                const sortedNums = [...card.numbers].sort((a, b) => a - b);
+                
+                let html = '';
+                for (let i = 0; i < 30; i++) {
+                    if (i < sortedNums.length) {
+                        html += `<span>${sortedNums[i]}</span>`;
+                    } else {
+                        html += `<span class="symbol">★</span>`;
+                    }
+                }
+                cardFront.innerHTML = html;
+            } else {
+                gameScreen.classList.add('hide');
+                resultScreen.classList.remove('hide');
+                finalNumberDisplay.innerText = totalSum;
+            }
+        }
+
+        function nextStep(isYes) {
+            if (isYes) totalSum += cardsData[currentCardIndex].start;
+            
+            cardWrapper.classList.add('flipped');
+            
+            setTimeout(() => {
+                currentCardIndex++;
+                renderCard();
+                cardWrapper.classList.remove('flipped');
+            }, 500);
+        }
+
+        document.getElementById('btn-start').addEventListener('click', () => {
+            introScreen.classList.add('hide');
+            gameScreen.classList.remove('hide');
+            renderCard();
+        });
+
+        document.getElementById('btn-da').addEventListener('click', () => nextStep(true));
+        document.getElementById('btn-ne').addEventListener('click', () => nextStep(false));
+
+        document.getElementById('btn-restart').addEventListener('click', () => {
+            currentCardIndex = 0;
+            totalSum = 0;
+            resultScreen.classList.add('hide');
+            introScreen.classList.remove('hide');
+        });
+    </script>
+</body>
+</html>
