@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+    <meta charset="UTF-8">
+    <title>Robot Mađioničar</title>
+    <style>
+        :root {
+            --primary: #00f2ff;
+            --robot-grey: #a0a0a0;
+            --robot-dark: #666;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: radial-gradient(circle at top, #0b1a3a, #020814);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .robot-assembly {
+            margin-top: 30px;
+            position: relative;
+            width: 200px;
+            height: 240px;
+            animation: masterFloat 4s ease-in-out infinite;
+        }
+
+        @keyframes masterFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .robot-head {
+            width: 100px; height: 80px;
+            background: var(--robot-grey);
+            margin: 0 auto;
+            border-radius: 15px;
+            position: relative;
+            border: 3px solid #444;
+            z-index: 3;
+        }
+
+        .eye {
+            width: 14px; height: 14px;
+            background: var(--primary);
+            border-radius: 50%;
+            position: absolute;
+            top: 20px;
+            box-shadow: 0 0 10px var(--primary);
+            transition: background 0.3s, box-shadow 0.3s;
+        }
+        .eye.left { left: 20px; }
+        .eye.right { right: 20px; }
+
+        .mouth-line {
+            width: 40px; height: 3px;
+            background: var(--primary);
+            position: absolute;
+            bottom: 20px; left: 30px;
+            box-shadow: 0 0 5px var(--primary);
+            border-radius: 2px;
+            animation: mouthPulse 2s infinite;
+        }
+
+        @keyframes mouthPulse {
+            0%, 100% { opacity: 0.5; transform: scaleX(1); }
+            50% { opacity: 1; transform: scaleX(1.1); }
+        }
+
+        .robot-body {
+            width: 130px; height: 110px;
+            background: var(--robot-dark);
+            margin: -5px auto 0;
+            border-radius: 20px;
+            position: relative;
+            border: 3px solid #333;
+        }
+
+        .arm {
+            width: 22px; height: 80px;
+            background: var(--robot-grey);
+            position: absolute;
+            top: 10px;
+            border-radius: 12px;
+            border: 2px solid #444;
+            transform-origin: top center;
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .arm.left { left: 5px; transform: rotate(5deg); }
+        .arm.right { right: 5px; transform: rotate(-5deg); }
+
+        .arm.waving-left { animation: waveL 0.5s ease-in-out infinite alternate; }
+        .arm.waving-right { animation: waveR 0.5s ease-in-out infinite alternate; }
+
+        @keyframes waveL { from { transform: rotate(5deg); } to { transform: rotate(80deg); } }
+        @keyframes waveR { from { transform: rotate(-5deg); } to { transform: rotate(-80deg); } }
+
+        .scene { width: 500px; height: 320px; perspective: 1000px; margin-top: 20px; }
+        .card { width: 100%; height: 100%; position: relative; transition: transform 0.8s; transform-style: preserve-3d; }
+        .card.is-flipped { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute; width: 100%; height: 100%;
+            backface-visibility: hidden; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; border-radius: 25px;
+            background: rgba(255, 255, 255, 0.07); backdrop-filter: blur(10px);
+            border: 2px solid var(--primary); padding: 20px; box-sizing: border-box;
+            box-shadow: 0 0 20px var(--primary);
+            transition: border 0.3s, box-shadow 0.3s;
+        }
+
+        .card-back { transform: rotateY(180deg); background: rgba(0, 242, 255, 0.1); }
+
+        /* UI */
+        .instruction { font-size: 22px; text-align: center; margin-bottom: 20px; min-height: 60px; }
+        .btn-main {
+            background: var(--primary); border: none; padding: 12px 30px;
+            border-radius: 50px; font-weight: bold; cursor: pointer;
+            box-shadow: 0 0 15px var(--primary); font-size: 16px; transition: 0.3s;
+            color: #000; margin: 5px;
+        }
+        .btn-main:hover { transform: scale(1.1); }
+        .btn-no { background: #ff4d4d; box-shadow: 0 0 15px #ff4d4d; }
+
+        #result-input {
+            width: 140px; padding: 10px; font-size: 24px; border-radius: 10px;
+            border: 2px solid var(--primary); background: #000; color: #fff;
+            text-align: center; margin-bottom: 15px; outline: none;
+        }
+        .final-num { font-size: 80px; color: var(--primary); text-shadow: 0 0 20px var(--primary); margin: 10px 0; }
+        
+        .feedback-msg { font-size: 18px; font-style: italic; color: #fff; margin-top: 10px; text-align: center; min-height: 25px; }
+    </style>
+</head>
+<body>
+
+    <div class="robot-assembly">
+        <div class="arm left" id="armL"></div>
+        <div class="arm right" id="armR"></div>
+        <div class="robot-head">
+            <div class="eye left"></div>
+            <div class="eye right"></div>
+            <div class="mouth-line"></div>
+        </div>
+        <div class="robot-body"></div>
+    </div>
+
+    <div id="level-select" style="margin-top: 20px;">
+        <button class="btn-main" onclick="start('easy')">LAK NIVO</button>
+        <button class="btn-main" style="margin-left:15px;" onclick="start('hard')">TEŽAK NIVO</button>
+    </div>
+
+    <div class="scene" id="scene" style="display:none;">
+        <div class="card" id="card">
+            <!-- PREDNJA STRANA -->
+            <div class="card-face card-front">
+                <div class="instruction" id="text">...</div>
+                <input type="number" id="result-input" style="display:none;" placeholder="???">
+                <button class="btn-main" id="btn-next" onclick="next()">Dalje ➜</button>
+            </div>
+            
+            <!-- ZADNJA STRANA (REZULTAT) -->
+            <div class="card-face card-back">
+                <h3 id="back-title" style="margin:0">Da li je ovo tvoj broj?</h3>
+                <div class="final-num" id="final">?</div>
+                
+                <div id="confirm-btns">
+                    <button class="btn-main" onclick="handleFeedback(true)">DA ✅</button>
+                    <button class="btn-main btn-no" onclick="handleFeedback(false)">NE ❌</button>
+                </div>
+
+                <div id="after-math" style="display:none;">
+                    <div class="feedback-msg" id="feedback-text"></div>
+                    <button class="btn-main" style="margin-top:15px;" onclick="location.reload()">PROBAJ PONOVO 🔄</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let step = 0;
+        let lvl = '';
+        const steps = {
+            easy: ["Zamisli broj", "Dodaj mu isti taj broj", "Sada dodaj 4", "Podeli sve sa 2", "Unesi rezultat"],
+            hard: ["Zamisli broj", "Pomnoži sa 3", "Dodaj 1", "Pomnoži sa 3", "Dodaj zamišljeni broj", "Unesi rezultat"]
+        };
+
+        const msgsYes = ["Super, ko je sledeći?", "Znao sam! Moja procesorska moć je nepogrešiva.", "Jednostavno prelepo!", "Mađioničar u duši, robot u struji!"];
+        const msgsNo = ["Nešto si zabagovao, probajmo ponovo!", "Hjustone, imamo problem... Proveri račun!", "Error 404: Tvoj račun nije tačan. Probaj opet.", "Reći ću ovo tvojoj nastavnici matematike."];
+
+        function changeGlow() {
+            const colors = ['#00f2ff', '#ff00ff', '#00ff88', '#ffff00', '#ff4d00', '#0077ff'];
+            const randomColor = colors[Math.floor(Math.random() * colors.length)];
+            document.documentElement.style.setProperty('--primary', randomColor);
+        }
+
+        function start(chosen) {
+            lvl = chosen;
+            document.getElementById('level-select').style.display = 'none';
+            document.getElementById('scene').style.display = 'block';
+            changeGlow();
+            update();
+        }
+
+        function update() {
+            document.getElementById('text').innerText = steps[lvl][step];
+            const isLast = step === steps[lvl].length - 1;
+            document.getElementById('result-input').style.display = isLast ? "block" : "none";
+            document.getElementById('btn-next').innerText = isLast ? "POGODI! ✨" : "Dalje ➜";
+
+            const al = document.getElementById('armL');
+            const ar = document.getElementById('armR');
+
+            if (isLast) {
+                al.classList.add('waving-left');
+                ar.classList.add('waving-right');
+            } else {
+                al.classList.remove('waving-left');
+                ar.classList.remove('waving-right');
+            }
+            changeGlow();
+        }
+
+        function next() {
+            if (step < steps[lvl].length - 1) {
+                step++;
+                update();
+            } else {
+                const inputVal = document.getElementById('result-input').value;
+                if (inputVal === "") return alert("Unesi rezultat!");
+
+                let result;
+                if (lvl === 'easy') {
+                    result = Number(inputVal) - 2;
+                } else {
+                    result = inputVal.length > 1 ? inputVal.slice(0, -1) : 0;
+                }
+
+                document.getElementById('final').innerText = result;
+                document.getElementById('card').classList.add('is-flipped');
+                changeGlow();
+            }
+        }
+
+        function handleFeedback(isCorrect) {
+            const btnContainer = document.getElementById('confirm-btns');
+            const afterMath = document.getElementById('after-math');
+            const feedbackText = document.getElementById('feedback-text');
+            const title = document.getElementById('back-title');
+
+            btnContainer.style.display = 'none';
+            afterMath.style.display = 'block';
+            title.style.display = 'none';
+
+            if(isCorrect) {
+                feedbackText.innerText = msgsYes[Math.floor(Math.random() * msgsYes.length)];
+            } else {
+                feedbackText.innerText = msgsNo[Math.floor(Math.random() * msgsNo.length)];
+            }
+            changeGlow();
+        }
+    </script>
+</body>
+</html>
